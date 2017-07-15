@@ -61,9 +61,7 @@ def resize_number_array(values, desired_length):
 
 
 def access_region(d,start,end):
-    for e in xrange(start,end):
-        if e in d:
-            yield d[e]
+    return [ v for pos,v in d.items() if start<=pos<=end  ]
 
 def resize_number_dict(posdict, desired_length):
     '''
@@ -102,8 +100,9 @@ def dprint(posdict,length=80):
 def lprint(posdict,length=80):
     print numberlist_to_str(posdict,length)
 
-
-
+if __name__ == "__main__":
+    lprint(range(1000))
+    dprint({x:x for x in range(1000)})
 
 
 
