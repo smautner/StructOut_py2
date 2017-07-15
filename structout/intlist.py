@@ -4,9 +4,8 @@ import math
 
 
 #############
-# NUMBER DECORATOR
+# TRANSFORM SINGLE NUMBER
 #############
-
 colorscheme={
         0:0,
         1:0,
@@ -19,7 +18,7 @@ colorscheme={
         '.':0
         }
 
-def compress_int(i):
+def int_to_log2chr(i):
     '''
     :param i:  INTEGER
     :return:
@@ -46,41 +45,65 @@ def decorate_number(num):
     :return:
         string, that integer in COMPRESSED and colored
     '''
-    num =compress_int(num)
+    num =int_to_log2chr(num)
     return colorize_symbol (str(num), colorscheme.get(num, 8))
 
 
+##########################
+##   COMPRESS RANGES OF NUMBERS
+########################
 
-
-def resize(values, desired_length):
+def resize_number_array(values, desired_length):
     length=len(values)
     size= float(length)/desired_length
     values = [  max(values[ int(i*size): int(math.ceil((i+1)*size))   ] )  for i in xrange(desired_length)]
     return values
 
 
-def positiondict_to_list(positiondict):
-    maxx =max(positiondict)
-    minn =min(positiondict)
-    return [ positiondict.get(a,0) for a in range(minn,maxx+1)]
+def access_region(d,start,end):
+    for e in xrange(start,end):
+        if e in d:
+            yield d[e]
+
+def resize_number_dict(posdict, desired_length):
+    '''
+    :param posdict:  {pos:NUMBER, etc}
+    :param desired_length:
+    :return:
+    '''
+    minn =min(posdict)
+    maxx =max(posdict)
+    length= maxx-minn
+    size= float(length)/desired_length
+    posdict = [max(access_region(posdict, int(i*size)+minn, int(math.ceil(i+1)*size+minn))) for i in xrange(desired_length)]
+    return posdict
 
 
 
-def positiondict_to_printable(pdict,dlength):
-    ret = map(decorate_number, resize( positiondict_to_list(pdict),desired_length=dlength ))
+
+###################
+# COMBINE RESIZER WITH SINGLE NUMBER TRANSFORMER
+###################
+def numberdict_to_str(ndict, dlength):
+    ret = map(decorate_number, resize_number_dict(ndict, desired_length=dlength))
+    return ''.join(ret)
+
+def numberlist_to_str(pdict, dlength):
+    ret = map(decorate_number, resize_number_array(pdict, desired_length=dlength))
     return ''.join(ret)
 
 
+###########
+#print stuff
+###########
+def dprint(posdict,length=80):
+    print numberdict_to_str(posdict,length)
 
-def display(region, disp_length=200):
-    info ="| %d \t %s" % (region.end-region.start,str(region) )
+def lprint(posdict,length=80):
+    print numberlist_to_str(posdict,length)
 
-    if region.piles:
-        print positiondict_to_printable(region.piles,disp_length)
 
-    if region.pvalues:
-        print positiondict_to_printable(region.pvalues,disp_length)
-    print info
+
 
 
 
