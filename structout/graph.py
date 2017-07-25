@@ -106,11 +106,15 @@ def nx_to_ascii(graph,
         resolution = max(3, int(math.sqrt((ax - bx) ** 2 + (ay - by) ** 2)))
         dx = float((bx - ax)) / resolution
         dy = float((by - ay)) / resolution
+        lastwritten_edge = None
         for step in range(resolution):
             x = int(ax + dx * step)
             y = int(ay + dy * step)
             if canvas[y][x] == ' ':
                 canvas[y][x] = "." if bw else color('.', col='black')[0]
+                lastwritten_edge=(y,x)
+        if lastwritten_edge and not bw and type(graph)==nx.DiGraph:
+                canvas[lastwritten_edge[0]][lastwritten_edge[1]] = color('.', col='blue')[0]
 
     canvas = '\n'.join([''.join(e) for e in canvas])
     if debug:
