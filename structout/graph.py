@@ -52,40 +52,46 @@ def set_print_symbol(g, bw=False, label='label', colorlabel=None):
 # coordinate setter
 ###
 
+
+def transform_coordinates(pos,ymax,xmax):
+    weird_maxx = max([x for (x, y) in pos.values()])
+    weird_minx = min([x for (x, y) in pos.values()])
+    weird_maxy = max([y for (x, y) in pos.values()])
+    weird_miny = min([y for (x, y) in pos.values()])
+
+    xfac = float((weird_maxx - weird_minx)) / xmax
+    yfac = float((weird_maxy - weird_miny)) / ymax
+    for key in pos.keys():
+        wx, wy = pos[key]
+        pos[key] = (int((wx - weird_minx) / xfac), int((wy - weird_miny) / yfac))
+        #pos["debug_%d" % key] = [wx,xfac,weird_minx,weird_maxx, wy,yfac,weird_miny, weird_maxy]
+    return pos
+
+
+#####
+# draw
+####
 def nx_to_ascii(graph,
                 size=10,
                 debug=None,
-                bw=False):
-    ymax = size
-    xmax = ymax * 2
-
+                bw=False,
+                pos=None):
     '''
         debug would be a path to the folder where we write the dot file.
         in: nxgraph
         out: a string
     '''
 
-    # ok need coordinates and a canvas
+
+    # set up canvas
+    ymax = size
+    xmax = ymax * 2
     canvas = [list(' ' * (xmax + 1)) for i in range(ymax + 1)]
-    pos = nx.graphviz_layout(graph, prog='neato', args="-Gratio='2'")
 
-    # alternative way to get pos. for chem graphs.
-    # seems a little bit unnecessary now... maybe ill built it later
-    # import molecule
-    # chem=molecule.nx_to_rdkit(graph)
-    # m.GetConformer().GetAtomPosition(0)
-
-    # transform coordinates
-    weird_maxx = max([x for (x, y) in pos.values()])
-    weird_minx = min([x for (x, y) in pos.values()])
-    weird_maxy = max([y for (x, y) in pos.values()])
-    weird_miny = min([y for (x, y) in pos.values()])
-
-    xfac = (weird_maxx - weird_minx) / xmax
-    yfac = (weird_maxy - weird_miny) / ymax
-    for key in pos.keys():
-        wx, wy = pos[key]
-        pos[key] = (int((wx - weird_minx) / xfac), int((wy - weird_miny) / yfac))
+    # layout
+    if not pos:
+        pos = nx.graphviz_layout(graph, prog='neato', args="-Gratio='2'")
+    pos= transform_coordinates(pos,ymax,xmax)
 
     # draw nodes
     for n, d in graph.nodes(data=True):
@@ -96,7 +102,6 @@ def nx_to_ascii(graph,
                 x += 1
             else:
                 break
-
 
 
     # draw edges
@@ -153,7 +158,7 @@ def makerows(graph_canvazes):
 # main printers
 #######
 
-def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', size=10, debug=None):
+def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', size=10, debug=None, pos=None):
     '''
 
     :param g:  network x graph
@@ -173,7 +178,7 @@ def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', si
         g = map(contract_graph, g)
 
     g = map(lambda x: set_print_symbol(x, bw=bw, label=label, colorlabel=colorlabel), g)
-    g = map(lambda x: nx_to_ascii(x, size=size, debug=debug, bw=bw), g)
+    g = map(lambda x: nx_to_ascii(x, size=size, debug=debug, bw=bw, pos=pos), g)
     return makerows(g)
 
 
@@ -185,3 +190,13 @@ def gprint(g, **kwargs):
 if __name__ == "__main__":
     graph = nx.path_graph(11)
     gprint(graph)
+
+
+
+''' 
+getting coordinates of molecules...  the molecule thing should be in the eden package afair
+import molecule
+chem=molecule.nx_to_rdkit(graph)
+m.GetConformer().GetAtomPosition(0)
+transform coordinates
+'''
