@@ -75,7 +75,8 @@ def nx_to_ascii(graph,
                 size=10,
                 debug=None,
                 bw=False,
-                pos=None):
+                pos=None,
+                edgecolorlabel='edgecolorlabel'):
     '''
         debug would be a path to the folder where we write the dot file.
         in: nxgraph
@@ -116,7 +117,7 @@ def nx_to_ascii(graph,
             x = int(ax + dx * step)
             y = int(ay + dy * step)
             if canvas[y][x] == ' ':
-                canvas[y][x] = "." if bw else color('.', col='black')[0]
+                canvas[y][x] = "." if bw else color('.', col=graph[a][b].get('edgecolorlabel','black'))[0]
                 lastwritten_edge=(y,x)
         if lastwritten_edge and not bw and type(graph)==nx.DiGraph:
                 canvas[lastwritten_edge[0]][lastwritten_edge[1]] = color('.', col='blue')[0]
@@ -158,7 +159,7 @@ def makerows(graph_canvazes):
 # main printers
 #######
 
-def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', size=10, debug=None, pos=None):
+def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', size=10, debug=None, pos=None,edgecolorlabel='edgecolorlabel'):
     '''
 
     :param g:  network x graph
@@ -178,7 +179,7 @@ def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', si
         g = map(contract_graph, g)
 
     g = map(lambda x: set_print_symbol(x, bw=bw, label=label, colorlabel=colorlabel), g)
-    g = map(lambda x: nx_to_ascii(x, size=size, debug=debug, bw=bw, pos=pos), g)
+    g = map(lambda x: nx_to_ascii(x, size=size, debug=debug, bw=bw, pos=pos,edgecolorlabel=edgecolorlabel), g)
     return makerows(g)
 
 
