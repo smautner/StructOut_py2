@@ -151,7 +151,7 @@ def makerows(graph_canvazes):
     g = zip(*g) #transpose(g)
     res = ''
     for row in g:
-        res += "".join(row) + '\n'
+        res += "  ".join(row) + '\n'
     return res
 
 #######
