@@ -205,6 +205,18 @@ def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', si
 def gprint(g, **kwargs):
     print make_picture(g, **kwargs)
 
+from pprint import pprint
+def ginfo(g):
+
+    for n,d in g.nodes(data=True):
+        d.pop('asciisymbol',None)
+        print n,
+        pprint (d)
+    for a,b,d in g.edges(data=True):
+        d.pop('asciisymbol',None)
+        print a,b,
+        pprint (d)
+
 
 # test
 if __name__ == "__main__":
@@ -212,7 +224,7 @@ if __name__ == "__main__":
     gprint(graph)
     graph[3][4]['label']='brot'
     gprint(graph, edgelabel='label')
-
+    ginfo(graph)
 
 ''' 
 getting coordinates of molecules...  the molecule thing should be in the eden package afair
