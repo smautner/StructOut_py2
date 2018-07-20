@@ -28,7 +28,7 @@ def defaultcolor(d):
         return 'red'
 
 
-def set_print_symbol(g, bw=False, label='label', colorlabel=None):
+def set_print_symbol(g, bw=False, label='label', colorlabel=None, edgelabel=None, edgecolorlabel=None):
     '''
     :param g:  networkx graph
     :param bw: draw in black/white
@@ -37,14 +37,26 @@ def set_print_symbol(g, bw=False, label='label', colorlabel=None):
     :return:
         networkx graph, nodes have 'asciisymbol' annotation
     '''
-    for n, d in g.nodes(data=True):
-        symbol = str(d.get(label,n))
+
+    def setcolor(symbol,d, label, colorlabel):
         if bw:
             d['asciisymbol'] = symbol
         elif colorlabel:
             d['asciisymbol'] = color(symbol, d[colorlabel])
         else:
             d['asciisymbol'] = color(symbol, defaultcolor(d))
+
+    for n, d in g.nodes(data=True):
+       setcolor(str(d.get(label,n)),d,label, colorlabel)
+
+    if edgelabel != None:
+        for a,b,d in g.edges(data=True):
+            if d.get(edgelabel,None):
+                setcolor(d[edgelabel], d, edgelabel, edgecolorlabel)
+
+
+
+
     return g
 
 
@@ -95,18 +107,21 @@ def nx_to_ascii(graph,
     pos= transform_coordinates(pos,ymax,xmax)
 
     # draw nodes
-    for n, d in graph.nodes(data=True):
-        x, y = pos[n]
-        for e in d['asciisymbol']:
+    def write_on_canvas(x,y,text):
+        for e in text:
             canvas[y][x] = e
             if x < xmax:
                 x += 1
             else:
                 break
 
+    for n, d in graph.nodes(data=True):
+        x, y = pos[n]
+        write_on_canvas(x,y,d['asciisymbol'])
+
 
     # draw edges
-    for (a, b) in graph.edges():
+    for a, b,d in graph.edges(data=True):
         ax, ay = pos[a]
         bx, by = pos[b]
         resolution = max(3, int(math.sqrt((ax - bx) ** 2 + (ay - by) ** 2)))
@@ -117,10 +132,14 @@ def nx_to_ascii(graph,
             x = int(ax + dx * step)
             y = int(ay + dy * step)
             if canvas[y][x] == ' ':
-                canvas[y][x] = "." if bw else color('.', col=graph[a][b].get('edgecolorlabel','black'))[0]
+                canvas[y][x] = "." if bw else color('.', col=graph[a][b].get(edgecolorlabel,'black'))[0]
                 lastwritten_edge=(y,x)
         if lastwritten_edge and not bw and type(graph)==nx.DiGraph:
                 canvas[lastwritten_edge[0]][lastwritten_edge[1]] = color('.', col='blue')[0]
+
+        #edgelabel
+        if d.get('asciisymbol',None) != None:
+            write_on_canvas( (ax+bx)/2 , (ay+by)/2 ,d['asciisymbol'])
 
     canvas = '\n'.join([''.join(e) for e in canvas])
     if debug:
@@ -159,7 +178,7 @@ def makerows(graph_canvazes):
 # main printers
 #######
 
-def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', size=10, debug=None, pos=None,edgecolorlabel='edgecolorlabel'):
+def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', size=10, debug=None, pos=None,edgecolorlabel=None,edgelabel=None):
     '''
 
     :param g:  network x graph
@@ -178,7 +197,7 @@ def make_picture(g, bw=False, colorlabel=None, contract=False, label='label', si
     if contract:
         g = map(contract_graph, g)
 
-    g = map(lambda x: set_print_symbol(x, bw=bw, label=label, colorlabel=colorlabel), g)
+    g = map(lambda x: set_print_symbol(x, bw=bw, label=label, colorlabel=colorlabel, edgecolorlabel=edgecolorlabel, edgelabel=edgelabel), g)
     g = map(lambda x: nx_to_ascii(x, size=size, debug=debug, bw=bw, pos=pos,edgecolorlabel=edgecolorlabel), g)
     return makerows(g)
 
@@ -191,7 +210,8 @@ def gprint(g, **kwargs):
 if __name__ == "__main__":
     graph = nx.path_graph(11)
     gprint(graph)
-
+    graph[3][4]['label']='brot'
+    gprint(graph, edgelabel='label')
 
 
 ''' 
