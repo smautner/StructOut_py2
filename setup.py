@@ -98,10 +98,11 @@ setup(
     packages=['structout'],
     scripts=[ ],
     include_package_data=True,
+    python_requires='<3',
     package_data={},
     url='https://github.com/smautner/StructOut',
     license='GPLv3',
-    description='recombine network graphs',
+    description='pretty print data structures',
     #long_description=open('README.md').read(),
     install_requires=[],
     cmdclass={'sdist': sdist, 'install': install}
